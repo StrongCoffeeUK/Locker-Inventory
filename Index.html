@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locker Inventory</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 15px;
+    background: #f2f2f2;
+}
+
+h1 {
+    text-align: center;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.low {
+    background: #ffe0e0;
+}
+
+.ok {
+    background: #e7ffe7;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.minus {
+    background: #ff6b6b;
+    color: white;
+}
+
+.plus {
+    background: #4caf50;
+    color: white;
+}
+
+.summary {
+    background: #fff8d8;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+ul {
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Locker Inventory</h1>
+
+<div class="summary">
+<h3>Bring To Work</h3>
+<ul id="shoppingList"></ul>
+</div>
+
+<div id="inventory"></div>
+
+<script>
+
+const inventory = [
+ {name:'Shirts', quantity:5, min:2, ideal:5},
+ {name:'Trousers', quantity:3, min:1, ideal:2},
+ {name:'Sports Top', quantity:2, min:1, ideal:2},
+ {name:'Shorts', quantity:2, min:1, ideal:1},
+ {name:'Pants', quantity:5, min:2, ideal:5},
+ {name:'Socks', quantity:5, min:1, ideal:3},
+ {name:'Belt', quantity:1, min:1, ideal:1},
+ {name:'Cufflinks', quantity:1, min:1, ideal:1}
+];
+
+function loadData() {
+    const saved = localStorage.getItem('lockerInventory');
+    return saved ? JSON.parse(saved) : inventory;
+}
+
+let data = loadData();
+
+function saveData() {
+    localStorage.setItem('lockerInventory', JSON.stringify(data));
+}
+
+function updateItem(index, change) {
+
+    data[index].quantity += change;
+
+    if (data[index].quantity < 0) {
+        data[index].quantity = 0;
+    }
+
+    saveData();
+    render();
+}
+
+function render() {
+
+    const container = document.getElementById('inventory');
+    container.innerHTML = '';
+
+    const shoppingList = document.getElementById('shoppingList');
+    shoppingList.innerHTML = '';
+
+    data.forEach((item, index) => {
+
+        const card = document.createElement('div');
+
+        card.className =
+            item.quantity <= item.min
+            ? 'card low'
+            : 'card ok';
+
+        card.innerHTML = `
+        <div class="item-row">
+            <div>
+                <strong>${item.name}</strong><br>
+                Quantity: ${item.quantity}
+            </div>
+
+            <div class="controls">
+                <button class="minus"
+                onclick="updateItem(${index},-1)">
+                -
+                </button>
+
+                <button class="plus"
+                onclick="updateItem(${index},1)">
+                +
+                </button>
+            </div>
+        </div>
+        `;
+
+        container.appendChild(card);
+
+        const needed = item.ideal - item.quantity;
+
+        if (needed > 0) {
+            const li = document.createElement('li');
+            li.textContent =
+                `${needed} × ${item.name}`;
+            shoppingList.appendChild(li);
+        }
+
+    });
+
+    if (shoppingList.children.length === 0) {
+        shoppingList.innerHTML =
+            '<li>Nothing needed ✅</li>';
+    }
+}
+
+render();
+
+</script>
+
+</body>
+</html>
